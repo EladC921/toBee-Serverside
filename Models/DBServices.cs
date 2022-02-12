@@ -15,7 +15,6 @@ namespace toBee_Serverside.Models
         // create the SQL connection
         public SqlConnection connect(String conString)
         {
-
             // read the connection string from the configuration file
             string cStr = WebConfigurationManager.ConnectionStrings[conString].ConnectionString;
             SqlConnection con = new SqlConnection(cStr);
@@ -93,7 +92,147 @@ namespace toBee_Serverside.Models
                     con.Close();
                 }
             }
-
         }
+
+        // ~~~ Users Handling ~~~
+
+        // GET single user
+        public User GetUser(int uid)
+        {
+            SqlConnection con = null;
+
+            try
+            {
+                con = connect("DBConnectionString"); // create a connection to the database using the connection String defined in the web config file
+
+                string selectSTR = "SELECT * FROM Users_2022 U WHERE U.uid = " + uid; // SELECT query 
+
+                SqlCommand cmd = new SqlCommand(selectSTR, con);
+
+                // get a reader
+                SqlDataReader dr = cmd.ExecuteReader(System.Data.CommandBehavior.CloseConnection); // CommandBehavior.CloseConnection: the connection will be closed after reading has reached the end
+
+                User u = new User();
+                while (dr.Read())
+                {   // Read till the end of the data into a row
+
+                    u.Uid = Convert.ToInt32(dr["uid"]);
+                    u.Nickname = (string)dr["nickname"];
+                    u.FirstName = (string)dr["firstName"];
+                    u.LastName = (string)dr["lastName"];
+                    u.Mail = (string)dr["mail"];
+                    u.PhoneNum = (string)dr["phoneNum"];
+                    u.ImgURL = (string)dr["imgURL"];
+
+                    break;
+                }
+                return u;
+            }
+            catch (Exception ex)
+            {
+                // write to log
+                throw (ex);
+            }
+            finally
+            {
+                if (con != null)
+                {
+                    con.Close();
+                }
+            }
+        }
+
+        // POST User
+        public int PostUser(User u)
+        {
+            string strCommand = "INSERT INTO Users_2022([nickname], [firstName] , [lastName], [mail], [phoneNum],  [imgURL] ) VALUES('" + u.Nickname + "', '" + u.FirstName + "', '" + u.LastName + "', '" + u.Mail + "', '" + u.PhoneNum + "', '" + u.ImgURL + "'); ";
+            return ExecuteSqlCommand(strCommand);
+        }
+        // ~~~ Groups Handling ~~~
+
+        // GET single Group
+        public Group GetGroup(int gid)
+        {
+            SqlConnection con = null;
+
+            try
+            {
+                con = connect("DBConnectionString"); // create a connection to the database using the connection String defined in the web config file
+
+                string selectSTR = "SELECT * FROM Groups_2022 G WHERE G.gid = " + gid; // SELECT query 
+
+                SqlCommand cmd = new SqlCommand(selectSTR, con);
+
+                // get a reader
+                SqlDataReader dr = cmd.ExecuteReader(System.Data.CommandBehavior.CloseConnection); // CommandBehavior.CloseConnection: the connection will be closed after reading has reached the end
+
+                Group g = new Group();
+                while (dr.Read())
+                {   // Read till the end of the data into a row
+                    g.Gid = Convert.ToInt32(dr["gid"]);
+                    g.Name = (string)dr["name"];
+                    g.Description = (string)dr["description"];
+                    g.ImgURL = (string)dr["imgURL"];
+
+                    break;
+                }
+                return g;
+            }
+            catch (Exception ex)
+            {
+                // write to log
+                throw (ex);
+            }
+            finally
+            {
+                if (con != null)
+                {
+                    con.Close();
+                }
+            }
+        }
+
+        // POST User
+        public Group PostGroup(Group g)
+        {
+            SqlConnection con = null;
+            int gid = -1;
+
+            //Insert the Group and get its ID
+            try
+            {
+                con = connect("DBConnectionString"); // create a connection to the database using the connection String defined in the web config file
+
+                string description = g.Description.Replace("\'", "\'\'");
+                string strCommand = "INSERT INTO Groups_2022([name], [description] , [imgURL] ) OUTPUT(Inserted.gid) VALUES('" + g.Name + "', '" + description + "', '" + g.ImgURL + "'); ";
+
+                SqlCommand cmd = new SqlCommand(strCommand, con);
+
+                // get a reader
+                SqlDataReader dr = cmd.ExecuteReader(System.Data.CommandBehavior.CloseConnection);
+
+                while (dr.Read())
+                {
+                    gid = Convert.ToInt32(dr["gid"]);
+                }
+                if (gid == -1) throw new Exception("Data was not read properly from SQL"); //if ID of recipe is -1 it means something went wrong
+
+            }
+            catch (Exception ex)
+            {
+                // write to log
+                throw (ex);
+            }
+            finally
+            {
+                if (con != null)
+                {
+                    con.Close();
+                }
+            }
+
+            return GetGroup(gid);
+        }
+        // ~~~ Tasks Handling ~~~
     }
 }

@@ -363,3 +363,6 @@ MigrationBackup/
 FodyWeavers.xsd
 
 *.config
+*.config
+packages.config
+Web.config

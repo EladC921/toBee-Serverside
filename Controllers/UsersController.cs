@@ -4,36 +4,40 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using toBee_Serverside.Models;
 
 namespace toBee_Serverside.Controllers
 {
     public class UsersController : ApiController
     {
         // GET api/<controller>
-        public IEnumerable<string> Get()
+        public IHttpActionResult Get(int uid)
         {
-            return new string[] { "value1", "value2" };
+            try
+            {
+
+                User u = new User();
+                u = u.GetUser(uid);
+                return Ok(u);
+            }
+            catch (Exception ex)
+            {
+                return Content(HttpStatusCode.BadRequest, ex);
+            }
         }
 
-        // GET api/<controller>/5
-        public string Get(int id)
+        //POST api/<controller>
+        public IHttpActionResult Post([FromBody] User newU)
         {
-            return "value";
-        }
-
-        // POST api/<controller>
-        public void Post([FromBody] string value)
-        {
-        }
-
-        // PUT api/<controller>/5
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/<controller>/5
-        public void Delete(int id)
-        {
+            try
+            {
+                newU.PostUser();
+                return Created(new Uri(Request.RequestUri.AbsoluteUri + newU.Uid), newU);
+            }
+            catch (Exception ex)
+            {
+                return Content(HttpStatusCode.BadRequest, ex);
+            }
         }
     }
 }

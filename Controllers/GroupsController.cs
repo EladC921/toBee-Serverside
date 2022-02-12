@@ -4,36 +4,40 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using toBee_Serverside.Models;
 
 namespace toBee_Serverside.Controllers
 {
     public class GroupsController : ApiController
     {
         // GET api/<controller>
-        public IEnumerable<string> Get()
+        public IHttpActionResult Get(int gid)
         {
-            return new string[] { "value1", "value2" };
+            try
+            {
+
+                Group g = new Group();
+                g = g.GetGroup(gid);
+                return Ok(g);
+            }
+            catch (Exception ex)
+            {
+                return Content(HttpStatusCode.BadRequest, ex);
+            }
         }
 
-        // GET api/<controller>/5
-        public string Get(int id)
+        //POST api/<controller>
+        public IHttpActionResult Post([FromBody] Group newG)
         {
-            return "value";
-        }
-
-        // POST api/<controller>
-        public void Post([FromBody] string value)
-        {
-        }
-
-        // PUT api/<controller>/5
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/<controller>/5
-        public void Delete(int id)
-        {
+            try
+            {
+                newG = newG.PostGroup();
+                return Created(new Uri(Request.RequestUri.AbsoluteUri + newG.Gid), newG);
+            }
+            catch (Exception ex)
+            {
+                return Content(HttpStatusCode.BadRequest, ex);
+            }
         }
     }
 }
