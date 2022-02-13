@@ -192,7 +192,7 @@ namespace toBee_Serverside.Models
             }
         }
 
-        // POST User
+        // POST Group
         public Group PostGroup(Group g)
         {
             SqlConnection con = null;
@@ -233,6 +233,14 @@ namespace toBee_Serverside.Models
 
             return GetGroup(gid);
         }
+
+        // POST User in Group
+        public int PostUserInGroup(int gid , int uid)
+        {
+            string strCommand = "INSERT INTO User_In_Group_2022([gid], [uid]) VALUES('" + gid + "', '" + uid + "'); ";
+            return ExecuteSqlCommand(strCommand);
+        }
+
         // ~~~ Tasks Handling ~~~
     }
 }

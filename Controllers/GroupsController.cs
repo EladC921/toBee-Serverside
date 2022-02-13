@@ -24,7 +24,7 @@ namespace toBee_Serverside.Controllers
             {
                 return Content(HttpStatusCode.BadRequest, ex);
             }
-        }
+        } 
 
         //POST api/<controller>
         public IHttpActionResult Post([FromBody] Group newG)
@@ -33,6 +33,23 @@ namespace toBee_Serverside.Controllers
             {
                 newG = newG.PostGroup();
                 return Created(new Uri(Request.RequestUri.AbsoluteUri + newG.Gid), newG);
+            }
+            catch (Exception ex)
+            {
+                return Content(HttpStatusCode.BadRequest, ex);
+            }
+        }
+
+        //POST api/<controller> User in Group
+        [HttpPost]
+        [Route("api/Groups/PostUserInGroup")]
+        public IHttpActionResult PostUserInGroup(int gid, int uid)
+        {
+            try
+            {
+                Group g = new Group();
+                g.PostUserInGroup(gid, uid);
+                return Created(new Uri(Request.RequestUri.AbsoluteUri), gid);
             }
             catch (Exception ex)
             {
