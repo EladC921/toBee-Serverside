@@ -11,26 +11,30 @@ namespace toBee_Serverside.Models
         string name;
         string description;
         string imgURL;
-        int acceptedRequestUserId;
         List<User> members;
 
         public int Gid { get => gid; set => gid = value; }
         public string Name { get => name; set => name = value; }
         public string Description { get => description; set => description = value; }
         public string ImgURL { get => imgURL; set => imgURL = value; }
-        public int AcceptedRequestUserId { get => acceptedRequestUserId; set => acceptedRequestUserId = value; }
         public List<User> Members { get => members; set => members = value; }
-
-        public Group PostGroup()
-        {
-            DBServices ds = new DBServices();
-            return ds.PostGroup(this);
-        }
 
         public Group GetGroup(int gid)
         {
             DBServices ds = new DBServices();
             return ds.GetGroup(gid);
+        }
+
+        public List<Group> GetGroupsOfUser(int uid)
+        {
+            DBServices ds = new DBServices();
+            return ds.GetGroupsOfUser(uid);
+        }
+
+        public Group PostGroup()
+        {
+            DBServices ds = new DBServices();
+            return ds.PostGroup(this);
         }
 
         public int PostUserInGroup(int gid, int uid)

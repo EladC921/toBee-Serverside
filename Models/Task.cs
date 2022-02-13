@@ -15,6 +15,8 @@ namespace toBee_Serverside.Models
         DateTime dueDate;
         User creator;
         List<User> regTo;
+        int gid;
+        string gName;
 
         public int Tid { get => tid; set => tid = value; }
         public string Title { get => title; set => title = value; }
@@ -23,7 +25,40 @@ namespace toBee_Serverside.Models
         public DateTime CreatedAt { get => createdAt; set => createdAt = value; }
         public DateTime DueDate { get => dueDate; set => dueDate = value; }
         public User Creator { get => creator; set => creator = value; }
-
         public List<User> RegTo { get => regTo; set => regTo = value; }
+        public int Gid { get => gid; set => gid = value; }
+        public string GName { get => gName; set => gName = value; }
+   
+        public List<Task> GetTasksOfGroup(int gid)
+        {
+            DBServices ds = new DBServices();
+            return ds.GetTasksOfGroup(gid);
+        } 
+
+        public List<Task> GetProfileTasksOfUser(int uid)
+        {
+            DBServices ds = new DBServices();
+            return ds.GetProfileTasksOfUser(uid);
+        } 
+        
+        public List<Task> GetAvailableTasksInAllGroups(int uid)
+        {
+            DBServices ds = new DBServices();
+            return ds.GetAvailableTasksInAllGroups(uid);
+        }   
+        
+        public List<Task> GetTasksOfRegUserInAllGroups(int uid)
+        {
+            DBServices ds = new DBServices();
+            return ds.GetTasksOfRegUserInAllGroups(uid);
+        }
+
+
+
+        public List<Task> PostTask()
+        {
+            DBServices ds = new DBServices();
+            return ds.PostTask(this);
+        }
     }
 }

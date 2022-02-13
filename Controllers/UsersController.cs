@@ -31,8 +31,8 @@ namespace toBee_Serverside.Controllers
         {
             try
             {
-                newU.PostUser();
-                return Created(new Uri(Request.RequestUri.AbsoluteUri + newU.Uid), newU);
+                int rowsAffected = newU.PostUser();
+                return Created(new Uri(Request.RequestUri.AbsoluteUri), rowsAffected);
             }
             catch (Exception ex)
             {

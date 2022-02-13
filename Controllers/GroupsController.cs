@@ -15,10 +15,26 @@ namespace toBee_Serverside.Controllers
         {
             try
             {
-
                 Group g = new Group();
                 g = g.GetGroup(gid);
                 return Ok(g);
+            }
+            catch (Exception ex)
+            {
+                return Content(HttpStatusCode.BadRequest, ex);
+            }
+        }
+
+        // GET api/<controller>
+        [HttpGet]
+        [Route("api/Groups/GetGroupsOfUser")]
+        public IHttpActionResult GetGroupsOfUser(int uid)
+        {
+            try
+            {
+                Group g = new Group();
+                List<Group> groups = g.GetGroupsOfUser(uid);
+                return Ok(groups);
             }
             catch (Exception ex)
             {
