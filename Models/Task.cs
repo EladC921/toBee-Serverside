@@ -53,12 +53,22 @@ namespace toBee_Serverside.Models
             return ds.GetTasksOfRegUserInAllGroups(uid);
         }
 
-
-
         public List<Task> PostTask()
         {
             DBServices ds = new DBServices();
             return ds.PostTask(this);
+        }
+
+        public List<Task> AssignUserToTaskInGroup(int gid, int uid, int tid)
+        {
+            DBServices ds = new DBServices();
+            return ds.AssignUserToTaskInGroup(gid, uid, tid);
+        }
+
+        public List<Task> CompleteTask(int gid, int uid, int tid)
+        {
+            DBServices ds = new DBServices();
+            return ds.CompleteTask(gid, uid, tid);
         }
     }
 }

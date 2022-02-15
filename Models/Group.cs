@@ -37,11 +37,16 @@ namespace toBee_Serverside.Models
             return ds.PostGroup(this);
         }
 
-        public int PostUserInGroup(int gid, int uid)
+        public Group PostUserInGroup(int gid, int uid)
         {
             DBServices ds = new DBServices();
             return ds.PostUserInGroup(gid, uid);
         }
 
+        public int DeleteUserFromGroup(int gid, int uid)
+        {
+            DBServices ds = new DBServices();
+            return ds.DeleteUserFromGroup(gid, uid);
+        }
     }
 }

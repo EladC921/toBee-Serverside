@@ -142,12 +142,76 @@ namespace toBee_Serverside.Models
             }
         }
 
+        // GET single user by email
+        public User GetUserByEmail(string mail)
+        {
+            SqlConnection con = null;
+
+            try
+            {
+                con = connect("DBConnectionString"); // create a connection to the database using the connection String defined in the web config file
+
+                string selectSTR = "SELECT * FROM Users_2022 U WHERE U.mail LIKE " + mail; // SELECT query 
+
+                SqlCommand cmd = new SqlCommand(selectSTR, con);
+
+                // get a reader
+                SqlDataReader dr = cmd.ExecuteReader(System.Data.CommandBehavior.CloseConnection); // CommandBehavior.CloseConnection: the connection will be closed after reading has reached the end
+
+                User u = new User();
+                while (dr.Read())
+                {   // Read till the end of the data into a row
+
+                    u.Uid = Convert.ToInt32(dr["uid"]);
+                    u.Nickname = (string)dr["nickname"];
+                    u.FirstName = (string)dr["firstName"];
+                    u.LastName = (string)dr["lastName"];
+                    u.Mail = (string)dr["mail"];
+                    u.PhoneNum = (string)dr["phoneNum"];
+                    u.ImgURL = (string)dr["imgURL"];
+
+                    break;
+                }
+                return u;
+            }
+            catch (Exception ex)
+            {
+                // write to log
+                throw (ex);
+            }
+            finally
+            {
+                if (con != null)
+                {
+                    con.Close();
+                }
+            }
+        }
+
         // POST User
         public int PostUser(User u)
         {
             string strCommand = "INSERT INTO Users_2022([nickname], [firstName] , [lastName], [mail], [phoneNum],  [imgURL] ) VALUES('" + u.Nickname + "', '" + u.FirstName + "', '" + u.LastName + "', '" + u.Mail + "', '" + u.PhoneNum + "', '" + u.ImgURL + "'); ";
             return ExecuteSqlCommand(strCommand);
         }
+
+        // Edit User Profile
+        public User EditUserProfile(User u)
+        {
+            string strCommand = "UPDATE Users_2022 SET nickname = '" + u.Nickname + "', firstName = '" + u.FirstName + "' , lastName = '" + u.LastName + "' WHERE uid = " + u.Uid;
+            ExecuteSqlCommand(strCommand);
+            return GetUser(u.Uid);
+        }
+          
+        
+        // Edit User Profile Image
+        public User EditUserProfilePic(string imgURL, int uid)
+        {
+            string strCommand = "UPDATE Users_2022 SET imgURL = " + imgURL + " WHERE uid = " + uid;
+            ExecuteSqlCommand(strCommand);
+            return GetUser(uid);
+        }
+
 
         // ~~~ Groups Handling ~~~
 
@@ -160,7 +224,7 @@ namespace toBee_Serverside.Models
             {
                 con = connect("DBConnectionString"); // create a connection to the database using the connection String defined in the web config file
 
-                string selectSTR = "SELECT * FROM Groups_2022 G WHERE G.gid = " + gid; // SELECT query 
+                string selectSTR = "SELECT * FROM Groups_2022 G left join User_In_Group_2022 UIG on G.gid = UIG.gid left join Users_2022 U on UIG.uid = U.uid WHERE G.gid = " + gid; // SELECT query 
 
                 SqlCommand cmd = new SqlCommand(selectSTR, con);
 
@@ -177,19 +241,23 @@ namespace toBee_Serverside.Models
                         g.Name = (string)dr["name"];
                         g.Description = (string)dr["description"];
                         g.ImgURL = (string)dr["imgURL"];
+                        g.Members = new List<User>();
 
                         firstRow = false;
                     }
 
-                    User u = new User();
+                    if (!(dr["uid"] is DBNull))
+                    {
+                        User u = new User();
 
-                    u.Uid = Convert.ToInt32(dr["uid"]);
-                    u.Nickname = (string)dr["nickname"];
-                    u.FirstName = (string)dr["firstName"];
-                    u.LastName = (string)dr["lastName"];
-                    u.ImgURL = (string)dr["imgURL"];
+                        u.Uid = Convert.ToInt32(dr["uid"]);
+                        u.Nickname = (string)dr["nickname"];
+                        u.FirstName = (string)dr["firstName"];
+                        u.LastName = (string)dr["lastName"];
+                        u.ImgURL = (string)dr["imgURL"];
 
-                    g.Members.Add(u);
+                        g.Members.Add(u);
+                    }
                 }
                 return g;
             }
@@ -250,10 +318,11 @@ namespace toBee_Serverside.Models
         }
 
         // POST User in Group
-        public int PostUserInGroup(int gid, int uid)
+        public Group PostUserInGroup(int gid, int uid)
         {
             string strCommand = "INSERT INTO User_In_Group_2022([gid], [uid]) VALUES('" + gid + "', '" + uid + "'); ";
-            return ExecuteSqlCommand(strCommand);
+            ExecuteSqlCommand(strCommand);
+            return GetGroup(gid);
         }
 
         // GET Groups of one User
@@ -301,6 +370,15 @@ namespace toBee_Serverside.Models
             }
         }
 
+
+        // DEL User from Group
+        public int DeleteUserFromGroup(int gid, int uid)
+        {
+            string strCommand = "DELETE FROM User_In_Group_2022 WHERE gid = " + gid + " AND uid = " + uid;
+            return ExecuteSqlCommand(strCommand);
+        }
+
+
         // ~~~ Tasks Handling ~~~
 
         // GET Tasks Of Group
@@ -313,9 +391,9 @@ namespace toBee_Serverside.Models
                 con = connect("DBConnectionString"); // create a connection to the database using the connection String defined in the web config file
 
                 string selectSTR = "SELECT GT.gid, UAT.uid as 'regTo', UCT.uid as 'createdBy', Ucreated.firstName as 'createdBy FirstName', Ucreated.lastName as 'createdBy LastName' ,Uassigned.firstName as 'regTo FirstName', Uassigned.lastName as 'regTo LastName',T.* " +
-                                    "FROM User_Assigned_To_Task_2022 UAT inner join Tasks_2022 T on UAT.tid = T.tid inner join User_Created_Task_2022 UCT on UCT.tid = T.tid " +
-                                    "inner join Users_2022 Uassigned on Uassigned.uid = UAT.uid inner join Users_2022 Ucreated on Ucreated.uid = UCT.uid inner join Group_Task_2022 GT on GT.tid = T.tid " +
-                                    "WHERE gid = " + gid; // SELECT query 
+                                    "FROM Group_Task_2022 GT inner join Groups_2022 G on G.gid = GT.gid inner join Tasks_2022 T on T.tid = GT.tid inner join User_Created_Task_2022 UCT on UCT.tid = T.tid " +
+                                        "left join User_Assigned_To_Task_2022 UAT on UAT.tid = T.tid inner join Users_2022 Ucreated on Ucreated.uid = UCT.uid left join Users_2022 Uassigned on Uassigned.uid = UAT.uid " +
+                                    "WHERE G.gid = " + gid;  // SELECT query 
 
                 SqlCommand cmd = new SqlCommand(selectSTR, con);
 
@@ -334,7 +412,7 @@ namespace toBee_Serverside.Models
                     loop = dr.Read();
                     if (!loop) // if the reader has finished
                     {
-                        tasks.Add(t); // add the last task that had been read to the tasks list
+                        if (t.Tid != 0) tasks.Add(t); // add the last task that had been read to the tasks list
                         break;
                     }
 
@@ -361,11 +439,14 @@ namespace toBee_Serverside.Models
                         t.Creator.LastName = (string)dr["createdBy LastName"];
                     }
 
-                    u = new User();
-                    u.Uid = Convert.ToInt32(dr["regTo"]);
-                    u.FirstName = (string)dr["regTo FirstName"];
-                    u.LastName = (string)dr["regTo LastName"];
-                    t.RegTo.Add(u);
+                    if (!(dr["regTo"] is DBNull))
+                    {
+                        u = new User();
+                        u.Uid = Convert.ToInt32(dr["regTo"]);
+                        u.FirstName = (string)dr["regTo FirstName"];
+                        u.LastName = (string)dr["regTo LastName"];
+                        t.RegTo.Add(u);
+                    }
                 }
                 return tasks;
 
@@ -417,7 +498,7 @@ namespace toBee_Serverside.Models
                     loop = dr.Read();
                     if (!loop) // if the reader has finished
                     {
-                        tasks.Add(t); // add the last task that had been read to the tasks list
+                        if (t.Tid != 0) tasks.Add(t); // add the last task that had been read to the tasks list
                         break;
                     }
 
@@ -632,6 +713,22 @@ namespace toBee_Serverside.Models
             ExecuteSqlCommand(strCommand2);
 
             return (t.Gid == -1) ? GetProfileTasksOfUser(t.Creator.Uid) : GetTasksOfGroup(t.Gid);
+        }
+
+        // Assign User to a Task
+        public List<Task> AssignUserToTaskInGroup(int gid, int uid, int tid)
+        {
+            string strCommand = "INSERT INTO User_Assigned_To_Task_2022([uid], [tid]) VALUES('" + uid + "', '" +  tid + "')";
+            ExecuteSqlCommand(strCommand);
+            return GetTasksOfGroup(gid);
+        }
+
+        // Complete a Task (send gid = -1 if Profile)
+        public List<Task> CompleteTask(int gid, int uid, int tid)
+        {
+            string strCommand = "UPDATE Tasks_2022 SET completed = 1 WHERE tid = " + tid;
+            ExecuteSqlCommand(strCommand);
+            return (gid == -1) ? GetProfileTasksOfUser(uid) : GetTasksOfGroup(gid);
         }
     }
 }

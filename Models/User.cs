@@ -34,5 +34,23 @@ namespace toBee_Serverside.Models
             DBServices ds = new DBServices();
             return ds.GetUser(uid);
         }
+        
+        public User GetUserByEmail(string mail)
+        {
+            DBServices ds = new DBServices();
+            return ds.GetUserByEmail(mail);
+        }
+
+        public User EditUserProfile()
+        {
+            DBServices ds = new DBServices();
+            return ds.EditUserProfile(this);
+        }
+        
+        public User EditUserProfilePic(string imgURL, int uid)
+        {
+            DBServices ds = new DBServices();
+            return ds.EditUserProfilePic(imgURL, uid);
+        }
     }
 }

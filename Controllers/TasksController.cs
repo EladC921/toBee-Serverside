@@ -92,5 +92,39 @@ namespace toBee_Serverside.Controllers
                 return Content(HttpStatusCode.BadRequest, ex);
             }
         }
+
+        //POST api/<controller>
+        [HttpPost]
+        [Route("api/Tasks/AssignUserToTaskInGroup")]
+        public IHttpActionResult Post(int gid, int uid, int tid)
+        {
+            try
+            {
+                Task t = new Task();
+                List<Task> tasks = t.AssignUserToTaskInGroup(gid, uid, tid);
+                return Created(new Uri(Request.RequestUri.AbsoluteUri), tasks);
+            }
+            catch (Exception ex)
+            {
+                return Content(HttpStatusCode.BadRequest, ex);
+            }
+        }
+
+        //Put api/<controller>
+        [HttpPut]
+        [Route("api/Tasks/CompleteTask")]
+        public IHttpActionResult Put(int gid, int uid, int tid)
+        {
+            try
+            {
+                Task t = new Task();
+                List<Task> tasks = t.CompleteTask(gid, uid, tid);
+                return Ok(tasks);
+            }
+            catch (Exception ex)
+            {
+                return Content(HttpStatusCode.BadRequest, ex);
+            }
+        }
     }
 }
