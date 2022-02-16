@@ -59,12 +59,12 @@ namespace toBee_Serverside.Controllers
         //POST api/<controller> User in Group
         [HttpPost]
         [Route("api/Groups/PostUserInGroup")]
-        public IHttpActionResult PostUserInGroup(int gid, int uid)
+        public IHttpActionResult PostUserInGroup(int gid, string nickname)
         {
             try
             {
                 Group g = new Group();
-                g = g.PostUserInGroup(gid, uid);
+                g = g.PostUserInGroup(gid, nickname);
                 return Created(new Uri(Request.RequestUri.AbsoluteUri + gid), g);
             }
             catch (Exception ex)
@@ -82,7 +82,6 @@ namespace toBee_Serverside.Controllers
                 int rowsChanged = g.DeleteUserFromGroup(gid, uid);
                 if (rowsChanged > 0) return Ok();
                 return Content(HttpStatusCode.NotFound, $"Group with gid={gid} or User with uid={uid} was not found for deleting!");
-
             }
             catch (Exception ex)
             {

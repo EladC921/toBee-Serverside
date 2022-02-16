@@ -198,18 +198,17 @@ namespace toBee_Serverside.Models
         // Edit User Profile
         public User EditUserProfile(User u)
         {
-            string strCommand = "UPDATE Users_2022 SET nickname = '" + u.Nickname + "', firstName = '" + u.FirstName + "' , lastName = '" + u.LastName + "' WHERE uid = " + u.Uid;
+            string strCommand = "UPDATE Users_2022 SET firstName = '" + u.FirstName + "' , lastName = '" + u.LastName + "' WHERE uid = " + u.Uid;
             ExecuteSqlCommand(strCommand);
             return GetUser(u.Uid);
         }
           
         
         // Edit User Profile Image
-        public User EditUserProfilePic(string imgURL, int uid)
+        public int EditUserProfilePic(User u)
         {
-            string strCommand = "UPDATE Users_2022 SET imgURL = " + imgURL + " WHERE uid = " + uid;
-            ExecuteSqlCommand(strCommand);
-            return GetUser(uid);
+            string strCommand = "UPDATE Users_2022 SET imgURL = '" + u.ImgURL + "' WHERE uid = " + u.Uid;
+            return ExecuteSqlCommand(strCommand);
         }
 
 
@@ -314,14 +313,52 @@ namespace toBee_Serverside.Models
                 }
             }
 
+            string strCommand2 = "INSERT INTO User_In_Group_2022([gid], [uid]) VALUES('" + gid + "','" + g.CreatorId + "'); ";
+            ExecuteSqlCommand(strCommand2);
             return GetGroup(gid);
         }
 
         // POST User in Group
-        public Group PostUserInGroup(int gid, int uid)
+        public Group PostUserInGroup(int gid, string nickname)
         {
-            string strCommand = "INSERT INTO User_In_Group_2022([gid], [uid]) VALUES('" + gid + "', '" + uid + "'); ";
-            ExecuteSqlCommand(strCommand);
+            SqlConnection con = null;
+            int uid = -1;
+
+            //Insert the Group and get its ID
+            try
+            {
+                con = connect("DBConnectionString"); // create a connection to the database using the connection String defined in the web config file
+
+                string strCommand = "SELECT uid FROM Users_2022 WHERE nickname LIKE '" + nickname + "'";
+
+                SqlCommand cmd = new SqlCommand(strCommand, con);
+
+                // get a reader
+                SqlDataReader dr = cmd.ExecuteReader(System.Data.CommandBehavior.CloseConnection);
+
+                while (dr.Read())
+                {
+                    uid = Convert.ToInt32(dr["uid"]);
+                    break;
+                }
+                if (uid == -1) throw new Exception("Data was not read properly from SQL Or there is no such User"); //if ID of user is -1 it means something went wrong
+
+            }
+            catch (Exception ex)
+            {
+                // write to log
+                throw (ex);
+            }
+            finally
+            {
+                if (con != null)
+                {
+                    con.Close();
+                }
+            }
+
+            string strCommand2 = "INSERT INTO User_In_Group_2022([gid], [uid]) VALUES('" + gid + "', '" + uid + "'); ";
+            ExecuteSqlCommand(strCommand2);
             return GetGroup(gid);
         }
 
@@ -374,7 +411,8 @@ namespace toBee_Serverside.Models
         // DEL User from Group
         public int DeleteUserFromGroup(int gid, int uid)
         {
-            string strCommand = "DELETE FROM User_In_Group_2022 WHERE gid = " + gid + " AND uid = " + uid;
+            string strCommand = "DELETE FROM User_In_Group_2022 WHERE gid = " + gid + " AND uid = " + uid + " ";
+            strCommand += "DELETE FROM User_Assigned_To_Task_2022 WHERE tid IN(SELECT tid FROM Group_Task_2022 WHERE gid = " + gid + ") AND uid = " + uid;
             return ExecuteSqlCommand(strCommand);
         }
 
@@ -479,7 +517,7 @@ namespace toBee_Serverside.Models
                                     "SELECT GT.gid, G.name as 'Group Name' ,UAT.uid as 'regTo', UCT.uid as 'createdBy', Ucreated.firstName as 'createdBy FirstName', Ucreated.lastName as 'createdBy LastName' ,Uassigned.firstName as 'regTo FirstName', Uassigned.lastName as 'regTo LastName',T.* " +
                                     "FROM User_Assigned_To_Task_2022 UAT inner join Tasks_2022 T on UAT.tid = T.tid inner join User_Created_Task_2022 UCT on UCT.tid = T.tid " +
                                         "inner join Users_2022 Uassigned on Uassigned.uid = UAT.uid inner join Users_2022 Ucreated on Ucreated.uid = UCT.uid inner join Group_Task_2022 GT on GT.tid = T.tid inner join Groups_2022 G on GT.gid = G.gid " +
-                                    "WHERE EXISTS(SELECT uid FROM User_Assigned_To_Task_2022 UAT2 WHERE UAT2.uid = @uid and UAT2.tid = T.tid) "; // SELECT query 
+                                    "WHERE UAT.uid = @uid"; // SELECT query 
 
                 SqlCommand cmd = new SqlCommand(selectSTR, con);
 

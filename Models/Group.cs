@@ -12,12 +12,14 @@ namespace toBee_Serverside.Models
         string description;
         string imgURL;
         List<User> members;
+        int creatorId;
 
         public int Gid { get => gid; set => gid = value; }
         public string Name { get => name; set => name = value; }
         public string Description { get => description; set => description = value; }
         public string ImgURL { get => imgURL; set => imgURL = value; }
         public List<User> Members { get => members; set => members = value; }
+        public int CreatorId { get => creatorId; set => creatorId = value; }
 
         public Group GetGroup(int gid)
         {
@@ -37,10 +39,10 @@ namespace toBee_Serverside.Models
             return ds.PostGroup(this);
         }
 
-        public Group PostUserInGroup(int gid, int uid)
+        public Group PostUserInGroup(int gid, string nickname)
         {
             DBServices ds = new DBServices();
-            return ds.PostUserInGroup(gid, uid);
+            return ds.PostUserInGroup(gid, nickname);
         }
 
         public int DeleteUserFromGroup(int gid, int uid)

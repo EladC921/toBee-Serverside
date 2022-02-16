@@ -47,10 +47,10 @@ namespace toBee_Serverside.Models
             return ds.EditUserProfile(this);
         }
         
-        public User EditUserProfilePic(string imgURL, int uid)
+        public int EditUserProfilePic()
         {
             DBServices ds = new DBServices();
-            return ds.EditUserProfilePic(imgURL, uid);
+            return ds.EditUserProfilePic(this);
         }
     }
 }
